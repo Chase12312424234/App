@@ -1,0 +1,201 @@
+<title>DropFinder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: single centered column, the app's own dark club look (deliberately single-theme). */
+:root {
+  --bg: #07060b; --bg-2: #0e0c15; --surface: #14111d; --surface-2: #1c1828; --line: #2a2438;
+  --text: #f3effa; --muted: #9b93ad; --pink: #ff2fb3; --pink-2: #ff6fcb; --cyan: #22e4ff;
+  --violet: #8b5cff; --spotify: #1ed760; --soundcloud: #ff7a1a; --warn: #ffcf4d;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(139, 92, 255, 0.22), transparent 60%),
+    radial-gradient(800px 500px at -10% 10%, rgba(255, 47, 179, 0.16), transparent 60%),
+    var(--bg);
+  color: var(--text); font: 15px/1.45 var(--body); -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+button, input, a { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { text-decoration: none; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 6px; }
+.app {
+  max-width: 980px; margin: 0 auto; padding-block: 0 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.accent { color: var(--pink); }
+.muted { color: var(--muted); margin: 0; font-size: 13.5px; }
+.top { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 12px; }
+.logo { display: inline-flex; align-items: center; gap: 6px; font: 700 19px/1 var(--display); letter-spacing: 0.06em; }
+.logo svg { color: var(--pink); filter: drop-shadow(0 0 8px rgba(255, 47, 179, 0.7)); margin-right: 4px; }
+.tag { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+.hero { padding: 36px 0 24px; text-align: center; }
+.hero h1 { font: 700 clamp(34px, 7vw, 60px)/1.04 var(--display); margin: 0 0 12px; letter-spacing: -0.02em; text-wrap: balance; }
+.hero h1 .accent { text-shadow: 0 0 32px rgba(255, 47, 179, 0.55); }
+.sub { color: var(--muted); max-width: 520px; margin: 0 auto 24px; font-size: 16px; text-wrap: balance; }
+.search { display: flex; gap: 8px; max-width: 680px; margin: 0 auto; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
+.search:focus-within { border-color: var(--pink); box-shadow: 0 0 0 4px rgba(255, 47, 179, 0.15); }
+.search input { flex: 1; min-width: 0; background: none; border: 0; outline: none; padding: 12px; font-size: 15px; }
+.search input::placeholder { color: #6c6480; }
+.search button { border: 0; border-radius: 11px; padding: 0 20px; font-weight: 600; white-space: nowrap; background: linear-gradient(135deg, var(--pink), var(--violet)); color: #fff; box-shadow: 0 0 24px rgba(255, 47, 179, 0.35); }
+.note { max-width: 680px; margin: 12px auto 0; font-size: 14px; color: var(--muted); text-align: left; background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; }
+.note code { font-family: var(--mono); font-size: 13px; color: var(--cyan); }
+.set { margin-top: 28px; }
+.set-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin: 0 0 14px; flex-wrap: wrap; }
+.set-head > div { min-width: 0; }
+.set-head h2 { margin: 0 0 4px; font: 600 20px/1.25 var(--display); text-wrap: balance; }
+.export { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ghost { display: inline-flex; align-items: center; gap: 6px; background: var(--surface-2); border: 1px solid var(--line); padding: 7px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 500; }
+.ghost:hover { border-color: var(--pink); }
+.check { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; margin-right: 4px; }
+.check input { accent-color: var(--pink); }
+.tracks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.track { display: grid; grid-template-columns: 26px 74px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 9px 10px 9px 12px; }
+.track.unknown { background: transparent; border-style: dashed; }
+.track.unknown .title { color: var(--muted); }
+.num { color: #5d566e; font: 500 12px var(--display); font-variant-numeric: tabular-nums; }
+.ts { background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; padding: 7px 0; font: 500 13px/1 var(--mono); color: var(--cyan); text-align: center; font-variant-numeric: tabular-nums; }
+.ts:hover { border-color: var(--cyan); }
+.meta { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.cover { width: 40px; height: 40px; border-radius: 7px; flex: none; background: repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 4px, var(--bg-2) 4px, var(--bg-2) 8px); }
+.names { display: flex; flex-direction: column; min-width: 0; }
+.title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.artist { color: var(--muted); font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; margin-left: 6px; font-size: 11px; background: rgba(255, 196, 0, 0.15); color: var(--warn); border: 1px solid rgba(255, 196, 0, 0.4); vertical-align: 2px; }
+.links { display: flex; gap: 5px; flex-wrap: wrap; }
+.pill { font-size: 12px; font-weight: 600; padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); }
+.pill.spotify { color: var(--spotify); } .pill.spotify:hover { border-color: var(--spotify); }
+.pill.soundcloud { color: var(--soundcloud); } .pill.soundcloud:hover { border-color: var(--soundcloud); }
+.drop-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 104px; height: 42px; border-radius: 10px; border: 1px solid rgba(255, 47, 179, 0.55); background: rgba(255, 47, 179, 0.1); color: var(--pink-2); font-weight: 600; font-size: 13px; }
+.drop-btn:hover { background: rgba(255, 47, 179, 0.2); box-shadow: 0 0 18px rgba(255, 47, 179, 0.35); }
+.drop-btn.none { border-color: var(--line); background: none; color: var(--muted); pointer-events: none; }
+.drop-label { display: inline-flex; gap: 6px; align-items: center; }
+.drop-time { font: 500 10.5px var(--mono); color: var(--muted); }
+.how { margin-top: 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.how div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
+.how b { display: block; font: 600 14px var(--display); margin-bottom: 4px; color: var(--cyan); }
+.how p { margin: 0; font-size: 13.5px; color: var(--muted); }
+footer { text-align: center; color: #5d566e; font-size: 12.5px; margin-top: 40px; }
+@media (max-width: 680px) {
+  .hero { padding-top: 20px; }
+  .search { flex-direction: column; }
+  .search button { height: 46px; }
+  .track { grid-template-columns: 62px minmax(0, 1fr) auto; grid-template-areas: "ts meta drop" "ts links drop"; row-gap: 6px; padding: 10px; }
+  .num { display: none; }
+  .ts { grid-area: ts; align-self: start; }
+  .meta { grid-area: meta; } .links { grid-area: links; }
+  .drop-btn { grid-area: drop; min-width: 84px; height: 54px; }
+  .cover { width: 34px; height: 34px; }
+  .tag { display: none; }
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <span class="logo"><svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M3 18h4l2.5-8 3.5 15 3.5-19 3.5 13 2.5-5H29" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>DROP</span><span class="accent">FINDER</span></span>
+    <span class="tag">Preview</span>
+  </header>
+
+  <section class="hero">
+    <h1>Every track. <span class="accent">Every drop.</span></h1>
+    <p class="sub">Paste a YouTube DJ set. Get the tracklist with timestamps, links, and a button that jumps straight to each drop.</p>
+    <form class="search" id="search">
+      <input id="url" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=…" aria-label="YouTube link" required>
+      <button type="submit">Find tracks</button>
+    </form>
+    <p class="note" id="note" hidden>This preview can't process new sets. That needs the DropFinder server, which runs on your computer: <code>.venv/bin/dropfinder serve</code>, then open <code>http://127.0.0.1:8000</code>. See the README for setup.</p>
+  </section>
+
+  <section class="set" aria-label="Example result">
+    <div class="set-head">
+      <div>
+        <h2 id="set-title"></h2>
+        <p class="muted" id="set-meta"></p>
+      </div>
+      <div class="export">
+        <label class="check" for="with-drops"><input type="checkbox" id="with-drops"> drop times</label>
+        <button class="ghost" id="copy" type="button">Copy tracklist</button>
+      </div>
+    </div>
+    <ol class="tracks" id="tracks"></ol>
+  </section>
+
+  <section class="how" aria-label="How it works">
+    <div><b>Listen</b><p>Downloads the set's audio and takes a 12-second sample every 45 seconds.</p></div>
+    <div><b>Identify</b><p>Each sample is matched with Shazam, then merged into one row per track.</p></div>
+    <div><b>Find the drop</b><p>Looks for the biggest jump in bass and loudness after a build-up.</p></div>
+  </section>
+
+  <footer>Example result from a real DropFinder run. In this preview, timestamps and Play drop open YouTube in a new tab; the full app plays them in an embedded player.</footer>
+</div>
+
+<script>
+const RESULT = {"info":{"video_id":"dQw4w9WgXcQ","title":"Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)","uploader":"Rick Astley","webpage_url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"},"duration":213.04,"entries":[{"start":0,"end":213.04,"title":"Never Gonna Give You Up","artist":"Rick Astley","uncertain":false,"links":{"spotify":"https://open.spotify.com/search/Rick%20Astley%20Never%20Gonna%20Give%20You%20Up","soundcloud":"https://soundcloud.com/search/sounds?q=Rick+Astley+Never+Gonna+Give+You+Up"},"drop":{"time":151.85}}]};
+const LEAD_IN = 3;
+
+const fmt = (sec, forceH) => {
+  const s = Math.max(0, Math.round(sec)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  const ss = String(s % 60).padStart(2, "0");
+  return h || forceH ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${String(m).padStart(2, "0")}:${ss}`;
+};
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+const yt = (t) => `https://www.youtube.com/watch?v=${RESULT.info.video_id}&t=${Math.max(0, Math.floor(t))}s`;
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const longSet = RESULT.duration >= 3600;
+const known = RESULT.entries.filter((e) => e.title).length;
+const drops = RESULT.entries.filter((e) => e.drop).length;
+document.getElementById("set-title").textContent = RESULT.info.title;
+document.getElementById("set-meta").textContent =
+  `${RESULT.info.uploader} · ${fmt(RESULT.duration)} · ${plural(known, "track")} identified · ${plural(drops, "drop")} · example result`;
+
+document.getElementById("tracks").innerHTML = RESULT.entries.map((e, i) => {
+  const unknown = !e.title;
+  const links = unknown ? "" :
+    `<a class="pill spotify" href="${e.links.spotify}" target="_blank" rel="noreferrer">Spotify</a>` +
+    `<a class="pill soundcloud" href="${e.links.soundcloud}" target="_blank" rel="noreferrer">SoundCloud</a>`;
+  const drop = e.drop
+    ? `<a class="drop-btn" href="${yt(e.drop.time - LEAD_IN)}" target="_blank" rel="noreferrer" title="Opens YouTube 3 seconds before the drop"><span class="drop-label"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>Play drop</span><span class="drop-time">${fmt(e.drop.time, longSet)}</span></a>`
+    : `<span class="drop-btn none">No drop</span>`;
+  return `<li class="track${unknown ? " unknown" : ""}">
+    <span class="num">${String(i + 1).padStart(2, "0")}</span>
+    <a class="ts" href="${yt(e.start)}" target="_blank" rel="noreferrer" title="Play from here">${fmt(e.start, longSet)}</a>
+    <div class="meta"><div class="cover"></div><div class="names">
+      <span class="title">${unknown ? "ID" : esc(e.title)}${e.uncertain ? '<span class="badge" title="Only heard in one sample">?</span>' : ""}</span>
+      <span class="artist">${unknown ? "Unknown track" : esc(e.artist)}</span></div></div>
+    <div class="links">${links}</div>${drop}</li>`;
+}).join("");
+
+function tracklistText(withDrops) {
+  const lines = [RESULT.info.title, RESULT.info.webpage_url, ""];
+  RESULT.entries.forEach((e, i) => {
+    let l = `${String(i + 1).padStart(2, "0")}. [${fmt(e.start, longSet)}] ` + (e.title ? `${e.artist} - ${e.title}${e.uncertain ? " (?)" : ""}` : "ID - ID");
+    if (withDrops && e.drop) l += `  · drop @ ${fmt(e.drop.time, longSet)}`;
+    lines.push(l);
+  });
+  return lines.concat("", "Tracklist by DropFinder").join("\n");
+}
+
+const copyBtn = document.getElementById("copy");
+copyBtn.addEventListener("click", () => {
+  const text = tracklistText(document.getElementById("with-drops").checked);
+  const done = () => { copyBtn.textContent = "Copied!"; setTimeout(() => (copyBtn.textContent = "Copy tracklist"), 1800); };
+  navigator.clipboard.writeText(text).then(done, () => {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (_) {}
+    ta.remove();
+  });
+});
+
+document.getElementById("search").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  document.getElementById("note").hidden = false;
+});
+</script>
