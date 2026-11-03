@@ -87,7 +87,8 @@ def run_identify(a: argparse.Namespace) -> int:
 
     known = sum(not e.unknown for e in entries)
     drops = sum(1 for e in entries if e.drop)
-    log(f"\n{known} tracks identified, {len(entries) - known} unknown, {drops} drops found. "
+    log(f"\n{known} track{'s' * (known != 1)} identified, {len(entries) - known} unknown, "
+        f"{drops} drop{'s' * (drops != 1)} found. "
         f"API calls: {usage['requests']} (retries {usage['retries']}, rate-limited {usage['rate_limited']}), "
         f"{usage['cached']} samples from cache. Matched {usage['matched']}/{usage['samples']} samples"
         + (f", {usage['failed']} failed after retries (rerun to retry them)." if usage["failed"] else "."))

@@ -88,7 +88,7 @@ def run(source: str, settings: Settings, progress: ProgressFn | None = None,
                             min_unknown_samples=settings.min_unknown_samples)
     known = sum(not e.unknown for e in entries)
 
-    report(Progress("analyzing", f"Finding the drops in {len(entries)} tracks…",
+    report(Progress("analyzing", f"Finding the drops in {len(entries)} track{'s' * (len(entries) != 1)}…",
                     len(times), len(times), known))
     add_links(entries)
     add_drops(entries, wav)
@@ -107,7 +107,7 @@ def run(source: str, settings: Settings, progress: ProgressFn | None = None,
         "usage": usage_rec,
     }
     (data_dir / info.video_id / "tracklist.json").write_text(json.dumps(result, indent=2))
-    report(Progress("done", f"Done: {known} tracks identified.", len(times), len(times), known))
+    report(Progress("done", f"Done: {known} track{'s' * (known != 1)} identified.", len(times), len(times), known))
     return result
 
 
