@@ -94,4 +94,5 @@ def test_text_export():
     assert "01. [00:00] Artist A - Song A" in txt
     assert "02. [01:30] ID - ID" in txt
     assert "03. [03:00] Artist B - Song B (?)" in txt
+    assert "Tracklist by DropFinder" in txt
     assert fmt_time(3725) == "1:02:05"

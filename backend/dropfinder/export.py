@@ -14,7 +14,8 @@ def fmt_time(seconds: float, force_hours: bool = False) -> str:
     return f"{m:02d}:{sec:02d}"
 
 
-def tracklist_text(entries: list[Entry], title: str | None = None, url: str | None = None) -> str:
+def tracklist_text(entries: list[Entry], title: str | None = None, url: str | None = None,
+                   drops: bool = False, links: bool = False) -> str:
     long_set = bool(entries) and entries[-1].end >= 3600
     lines = []
     if title:
@@ -23,13 +24,19 @@ def tracklist_text(entries: list[Entry], title: str | None = None, url: str | No
         lines.append(url)
     if lines:
         lines.append("")
-    n = 0
-    for e in entries:
-        n += 1
+    for n, e in enumerate(entries, 1):
         ts = fmt_time(e.start, long_set)
         if e.unknown:
-            lines.append(f"{n:02d}. [{ts}] ID - ID")
+            line = f"{n:02d}. [{ts}] ID - ID"
         else:
-            flag = " (?)" if e.uncertain else ""
-            lines.append(f"{n:02d}. [{ts}] {e.artist} - {e.title}{flag}")
+            line = f"{n:02d}. [{ts}] {e.artist} - {e.title}" + (" (?)" if e.uncertain else "")
+        if drops and e.drop:
+            line += f"  · drop @ {fmt_time(e.drop['time'], long_set)}"
+        lines.append(line)
+        if links and e.links:
+            for k in ("spotify", "soundcloud"):
+                if k in e.links:
+                    lines.append(f"      {k}: {e.links[k]}")
+    lines.append("")
+    lines.append("Tracklist by DropFinder")
     return "\n".join(lines) + "\n"

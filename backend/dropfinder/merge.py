@@ -59,6 +59,8 @@ class Entry:
     first_hit: float | None = None
     last_hit: float | None = None
     extra: dict = field(default_factory=dict)
+    links: dict = field(default_factory=dict)
+    drop: dict | None = None   # {"time", "score", "confidence"}
 
     @property
     def unknown(self) -> bool:
